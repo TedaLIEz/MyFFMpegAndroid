@@ -1,0 +1,44 @@
+#
+# Visual Studio Code
+#
+**/.vscode
+
+#
+# Eclipse
+#
+**/.settings
+**/.externalToolBuilders
+
+#
+# IntelliJ IDEA
+#
+**/.idea/
+*.iws
+*.ipr
+*.iml
+
+#
+# and Android Studio
+#
+build/
+**/build/
+.gradle/
+**/local.properties
+reports/
+captures/
+
+#
+# Python
+#
+*.pyc
+
+#
+# OSX files
+#
+**/.DS_Store
+
+#
+# SCM
+#
+**/.svn
+
