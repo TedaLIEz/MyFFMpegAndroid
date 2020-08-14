@@ -8,55 +8,64 @@
 
     <include
         android:id="@+id/fileFormat"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
         layout="@android:layout/simple_list_item_2"
-        app:layout_constraintBottom_toTopOf="@+id/videoCodec"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toStartOf="@+id/protocol"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <include
+        android:id="@+id/protocol"
+        layout="@android:layout/simple_list_item_2"
+        android:layout_width="0dp"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/fileFormat" />
 
     <include
         android:id="@+id/videoCodec"
+        layout="@android:layout/simple_list_item_2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        layout="@android:layout/simple_list_item_2"
         app:layout_constraintBottom_toTopOf="@+id/width"
         app:layout_constraintTop_toBottomOf="@+id/fileFormat" />
 
     <include
         android:id="@+id/width"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
         layout="@android:layout/simple_list_item_2"
-        app:layout_constraintBottom_toTopOf="@+id/height"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toStartOf="@+id/height"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/videoCodec" />
 
     <include
         android:id="@+id/height"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
         layout="@android:layout/simple_list_item_2"
-        app:layout_constraintBottom_toTopOf="@+id/protocol"
-        app:layout_constraintTop_toBottomOf="@+id/width" />
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@+id/videoCodec"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/width" />
 
-    <include
-        android:id="@+id/protocol"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        layout="@android:layout/simple_list_item_2"
-        app:layout_constraintTop_toBottomOf="@+id/height" />
 
     <include
         android:id="@+id/uri"
+        layout="@android:layout/simple_list_item_2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        layout="@android:layout/simple_list_item_2"
-        app:layout_constraintTop_toBottomOf="@+id/protocol" />
+        app:layout_constraintTop_toBottomOf="@+id/height" />
 
     <SurfaceView
-        app:layout_constraintLeft_toLeftOf="parent"
         android:id="@+id/surfaceView"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/uri"
         android:layout_width="match_parent"
-        android:layout_height="220dp"/>
+        android:layout_height="220dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/uri" />
 </androidx.constraintlayout.widget.ConstraintLayout>

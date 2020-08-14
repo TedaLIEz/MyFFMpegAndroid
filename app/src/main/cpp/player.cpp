@@ -129,7 +129,7 @@ Java_com_github_tedaliez_testffmpeg_Player_playVideo(JNIEnv *env, jobject instan
                     frame->data, frame->linesize,
                     0, videoHeight,
                     rgba_frame->data, rgba_frame->linesize);
-            LOGD("frame width: %d, frame height: %d", frame->width, frame->height);
+//            LOGD("frame width: %d, frame height: %d", frame->width, frame->height);
 //            if (result <= 0) {
 //                LOGE("Player Error : data convert fail, result: %d", result);
 //                return;

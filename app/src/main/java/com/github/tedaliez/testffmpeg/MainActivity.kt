@@ -28,7 +28,7 @@ import androidx.core.content.ContextCompat
 import kotlinx.android.synthetic.main.activity_main.*
 import java.io.FileNotFoundException
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : BasePlaygroundAct() {
 
     init {
         listOf("avutil", "avcodec", "avformat", "swscale", "test_ffmpeg").forEach {
@@ -44,6 +44,10 @@ class MainActivity : AppCompatActivity() {
 
     private var videoFileConfig: VideoFileConfig? = null
     private var surfaceHolder: SurfaceHolder? = null
+
+    override fun onVideoPicked(uri: Uri) {
+        tryGetVideoConfig(uri)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -79,14 +83,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == REQUEST_CODE_PICK_VIDEO) {
-            if (resultCode == Activity.RESULT_OK && data?.data != null) {
-                tryGetVideoConfig(data.data!!)
-            }
-        }
-    }
 
 
     private fun tryGetVideoConfig(uri: Uri) {
@@ -114,7 +110,7 @@ class MainActivity : AppCompatActivity() {
             setVideoConfig(videoFileConfig)
             surfaceHolder!!.addCallback(object: SurfaceHolder.Callback {
                 override fun surfaceChanged(p0: SurfaceHolder, p1: Int, p2: Int, p3: Int) {
-                    Log.i(TAG, "surfaceChanged")
+                    Log.i(TAG, "surfaceChanged, pixelFormat: $p1, width: $p2, height: $p3")
                     playVideo(path)
                 }
 
@@ -162,18 +158,6 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menu.add("PICKVIDEO").setOnMenuItemClickListener {
-            startActivityForResult(
-                Intent(Intent.ACTION_GET_CONTENT)
-                .setType("video/*")
-                .putExtra(Intent.EXTRA_LOCAL_ONLY, true)
-                .addCategory(Intent.CATEGORY_OPENABLE),
-                REQUEST_CODE_PICK_VIDEO)
-            true
-        }.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
-        return true
-    }
 
 
     private fun View.setupTwoLineView(text2: String) {
