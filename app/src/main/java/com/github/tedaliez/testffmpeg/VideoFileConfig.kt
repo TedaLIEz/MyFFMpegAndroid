@@ -57,10 +57,6 @@ class VideoFileConfig private constructor(val fullFeatured: Boolean, val uri: Ur
                 null
             } else config
 
-        init {
-            listOf("avutil", "avcodec", "avformat", "swscale", "test_ffmpeg").forEach {
-                System.loadLibrary(it)
-            }
-        }
+
     }
 }

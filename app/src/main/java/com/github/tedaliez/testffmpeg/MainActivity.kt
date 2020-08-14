@@ -1,14 +1,24 @@
 package com.github.tedaliez.testffmpeg
 
 import android.Manifest.permission.READ_EXTERNAL_STORAGE
+import android.annotation.TargetApi
 import android.app.Activity
+import android.content.ContentResolver
+import android.content.ContentUris
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.PixelFormat
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.os.Environment
+import android.provider.DocumentsContract
+import android.provider.MediaStore
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.SurfaceHolder
 import android.view.View
 import android.widget.TextView
 import android.widget.Toast
@@ -20,6 +30,12 @@ import java.io.FileNotFoundException
 
 class MainActivity : AppCompatActivity() {
 
+    init {
+        listOf("avutil", "avcodec", "avformat", "swscale", "test_ffmpeg").forEach {
+            System.loadLibrary(it)
+        }
+    }
+
     companion object {
         private const val REQUEST_STORAGE = 0xffff
         private const val REQUEST_CODE_PICK_VIDEO = 0xfffe
@@ -27,7 +43,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private var videoFileConfig: VideoFileConfig? = null
-
+    private var surfaceHolder: SurfaceHolder? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,6 +61,8 @@ class MainActivity : AppCompatActivity() {
                 REQUEST_STORAGE
             )
         }
+        surfaceHolder = surfaceView.holder
+        surfaceHolder!!.setFormat(PixelFormat.RGBA_8888)
     }
 
 
@@ -75,13 +93,14 @@ class MainActivity : AppCompatActivity() {
         var videoFileConfig: VideoFileConfig? = null
 
         // First, try get a file:// path
-        val path = PathUtil.getPath(this, uri)
+        val path = FileUtils(this).getPath(uri)
         if (path != null) {
             videoFileConfig = VideoFileConfig.create(path, uri)
         }
 
         // Second, try get a FileDescriptor.
         if (videoFileConfig == null) {
+            Log.d(TAG, "fail to create config, try to use fd")
             try {
                 val descriptor = contentResolver.openFileDescriptor(uri, "r")
                 if (descriptor != null) {
@@ -93,9 +112,34 @@ class MainActivity : AppCompatActivity() {
 
         if (videoFileConfig != null) {
             setVideoConfig(videoFileConfig)
+            surfaceHolder!!.addCallback(object: SurfaceHolder.Callback {
+                override fun surfaceChanged(p0: SurfaceHolder, p1: Int, p2: Int, p3: Int) {
+                    Log.i(TAG, "surfaceChanged")
+                    playVideo(path)
+                }
+
+                override fun surfaceDestroyed(p0: SurfaceHolder) {
+                    Log.i(TAG, "surfaceDestroyed")
+                }
+
+                override fun surfaceCreated(p0: SurfaceHolder) {
+                    Log.i(TAG, "surfaceCreated")
+
+                }
+
+            })
+
         } else {
             Toast.makeText(this, "Fail to open file!", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    private fun playVideo(path: String) {
+        Thread {
+            val player = Player()
+            player.playVideo(path, surfaceHolder!!.surface)
+        }.start()
+
     }
 
     private fun setVideoConfig(config: VideoFileConfig) {

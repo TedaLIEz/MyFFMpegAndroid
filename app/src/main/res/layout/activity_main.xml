@@ -52,4 +52,11 @@
         layout="@android:layout/simple_list_item_2"
         app:layout_constraintTop_toBottomOf="@+id/protocol" />
 
+    <SurfaceView
+        app:layout_constraintLeft_toLeftOf="parent"
+        android:id="@+id/surfaceView"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/uri"
+        android:layout_width="match_parent"
+        android:layout_height="220dp"/>
 </androidx.constraintlayout.widget.ConstraintLayout>

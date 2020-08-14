@@ -11,7 +11,7 @@
 // uri can be either file: or pipe:
 static VideoConfig *video_config_create(const char *uri) {
     AVFormatContext *avFormatContext = nullptr;
-
+    LOGI("video_config_create, open file uri: %s", uri);
     if (avformat_open_input(&avFormatContext, uri, nullptr, nullptr)) {
         return nullptr;
     }
