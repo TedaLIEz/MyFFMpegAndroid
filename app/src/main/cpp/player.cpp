@@ -108,7 +108,11 @@ Java_com_github_tedaliez_testffmpeg_Player_playVideo(JNIEnv *env, jobject instan
             videoWidth, videoHeight, AV_PIX_FMT_RGBA,
             SWS_BICUBIC, NULL, NULL, NULL);
     // Start reading frames
-    int frame_cnt = 0;
+    LOGD("Start playing video, frame_rate: %d/%d, time_base: %d/%d",
+            format_context->streams[video_stream_index]->r_frame_rate.den,
+            format_context->streams[video_stream_index]->r_frame_rate.num,
+            format_context->streams[video_stream_index]->time_base.den,
+            format_context->streams[video_stream_index]->time_base.num);
     while (av_read_frame(format_context, packet) >= 0) {
         // Matching Video Stream
         if (packet->stream_index == video_stream_index) {
@@ -123,6 +127,12 @@ Java_com_github_tedaliez_testffmpeg_Player_playVideo(JNIEnv *env, jobject instan
                 LOGE("Player Error : codec step 2 fail");
                 return;
             }
+            LOGI("Frame %c (%d, size=%d) pts %d dts %d key_frame %d [codec_picture_number %d, display_picture_number %d]",
+                    av_get_picture_type_char(frame->pict_type), video_codec_context->frame_number,
+                    frame->pkt_size,
+                    frame->pts,
+                    frame->pkt_dts,
+                    frame->key_frame, frame->coded_picture_number, frame->display_picture_number);
             // Data Format Conversion
             result = sws_scale(
                     data_convert_context,
