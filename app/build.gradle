@@ -30,6 +30,10 @@ android {
         }
     }
 
+    packagingOptions {
+        pickFirst '**/*.so'
+    }
+
     buildTypes {
         release {
             minifyEnabled false

@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">TestFFMpeg</string>
+    <string name="info_file_format">File format:</string>
+    <string name="info_video_codec">Video codec:</string>
+    <string name="info_width">Width:</string>
+    <string name="info_height">Height:</string>
+    <string name="info_protocol_title">Used protocol:</string>
+    <string name="info_uri">Used uri:</string>
+    <string name="info_protocol_file">file</string>
+    <string name="info_protocol_pipe">pipe (limited functionality)</string>
 </resources>

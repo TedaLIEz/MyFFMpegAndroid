@@ -1,0 +1,4 @@
+[submodule "ffmpeg-android-maker"]
+	path = ffmpeg-android-maker
+	url = https://github.com/Javernaut/ffmpeg-android-maker.git
+	branch = master

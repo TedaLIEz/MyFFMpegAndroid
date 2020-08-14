@@ -1,19 +1,19 @@
 package com.github.tedaliez.testffmpeg
 
-import android.graphics.Bitmap
+import android.net.Uri
 import android.os.ParcelFileDescriptor
 
 /**
  *
  * @since 2020/08/13
  */
-class VideoFileConfig {
+class VideoFileConfig private constructor(val fullFeatured: Boolean, val uri: Uri) {
 
-    private constructor(fileDescriptor: Int) {
+    private constructor(fileDescriptor: Int, uri: Uri) : this(false, uri) {
         nativeNewFD(fileDescriptor)
     }
 
-    private constructor(filePath: String) {
+    private constructor(filePath: String, uri: Uri) : this(true, uri) {
         nativeNewPath(filePath)
     }
 
@@ -34,17 +34,23 @@ class VideoFileConfig {
 
     external fun release()
 
-    external fun fillWithPreview(bitmap: Bitmap): Boolean
 
     private external fun nativeNewFD(fileDescriptor: Int)
 
     private external fun nativeNewPath(filePath: String)
 
+
+    override fun toString(): String {
+        return "VideoFileConfig(fullFeatured=$fullFeatured, uri=$uri, nativePointer=$nativePointer, " +
+                "width=$width, height=$height, fileFormant=$fileFormat, codecName=$codecName)"
+    }
+
+
     companion object {
 
-        fun create(filePath: String) = returnIfValid(VideoFileConfig(filePath))
+        fun create(filePath: String, uri: Uri) = returnIfValid(VideoFileConfig(filePath, uri))
 
-        fun create(descriptor: ParcelFileDescriptor) = returnIfValid(VideoFileConfig(descriptor.detachFd()))
+        fun create(descriptor: ParcelFileDescriptor, uri: Uri) = returnIfValid(VideoFileConfig(descriptor.detachFd(), uri))
 
         private fun returnIfValid(config: VideoFileConfig) =
             if (config.nativePointer == -1L) {
@@ -52,7 +58,7 @@ class VideoFileConfig {
             } else config
 
         init {
-            listOf("avutil", "avcodec", "avformat", "swscale", "video-config").forEach {
+            listOf("avutil", "avcodec", "avformat", "swscale", "test_ffmpeg").forEach {
                 System.loadLibrary(it)
             }
         }
