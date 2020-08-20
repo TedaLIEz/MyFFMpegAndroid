@@ -98,6 +98,11 @@ class MainActivity : BasePlaygroundAct() {
         }
         surfaceHolder = surfaceView.holder
         surfaceHolder!!.setFormat(PixelFormat.RGBA_8888)
+        btn_player_ground.setOnClickListener {
+            val intent = Intent()
+            intent.setClass(this, PlayerActivity::class.java)
+            startActivity(intent)
+        }
     }
 
 
