@@ -14,6 +14,7 @@ extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libswscale/swscale.h>
 #include <libavutil/imgutils.h>
+#include <libswresample/swresample.h>
 }
 
 extern "C"
@@ -184,4 +185,123 @@ Java_com_github_tedaliez_testffmpeg_Player_playVideo(JNIEnv *env, jobject instan
     env->ReleaseStringUTFChars(path_, path);
 
 
+}
+
+
+
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_github_tedaliez_testffmpeg_Player_playAudio(JNIEnv *env, jobject instance, jstring path_) {
+    int result;
+
+    const char* path = env->GetStringUTFChars(path_, 0);
+    av_register_all();
+
+    auto format_context = avformat_alloc_context();
+    avformat_open_input(&format_context, path, nullptr, nullptr);
+
+    result = avformat_find_stream_info(format_context, nullptr);
+    if (result < 0) {
+        LOGE("Player Error: Can not find video file stream: %s", path);
+        return;
+    }
+
+    int audio_stream_index = -1;
+    for (int i = 0; i < format_context->nb_streams; i++) {
+        if (format_context->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
+            audio_stream_index = i;
+        }
+    }
+    if (audio_stream_index == -1) {
+        LOGE("Player Error: Can not find audio stream");
+        return;
+    }
+    auto audio_codec_context = avcodec_alloc_context3(nullptr);
+    avcodec_parameters_to_context(audio_codec_context, format_context->streams[audio_stream_index]->codecpar);
+
+    // init codec
+    auto audio_codec = avcodec_find_decoder(audio_codec_context->codec_id);
+    if (!audio_codec) {
+        LOGE("Player Error: Can not find audio codec");
+        return;
+    }
+
+    result = avcodec_open2(audio_codec_context, audio_codec, nullptr);
+    if (result < 0) {
+        LOGE("Player Error: Can not open audio codec");
+        return;
+    }
+
+    auto swr_context = swr_alloc();
+    auto out_buffer = (uint8_t *) av_malloc(44100 * 2);
+
+
+    // expected sample output
+    uint64_t out_channel_layout = AV_CH_LAYOUT_STEREO;
+    auto out_format = AV_SAMPLE_FMT_S16;
+
+    auto out_sample_rate = audio_codec_context->sample_rate;
+
+    // expected sample out para end
+
+    swr_alloc_set_opts(swr_context,
+        out_channel_layout, out_format, out_sample_rate,
+        audio_codec_context->channel_layout, audio_codec_context->sample_fmt, audio_codec_context->sample_rate,
+0, nullptr);
+
+
+    swr_init(swr_context);
+
+    auto out_channels = av_get_channel_layout_nb_channels(AV_CH_LAYOUT_STEREO);
+
+    auto player_class = env->GetObjectClass(instance);
+    auto create_audio_track_method_id = env->GetMethodID(player_class, "createAudioTrack", "(II)V");
+    env->CallVoidMethod(instance, create_audio_track_method_id, 44100, out_channels);
+
+
+    auto play_audio_track_method_id = env->GetMethodID(player_class, "playAudioTrack", "([BI)V");
+
+
+    auto packet = av_packet_alloc();
+
+    auto frame = av_frame_alloc();
+
+    while (av_read_frame(format_context, packet) >= 0) {
+        if (packet->stream_index == audio_stream_index) {
+            result = avcodec_send_packet(audio_codec_context, packet);
+            if (result < 0 && result != AVERROR(EAGAIN) && result != AVERROR_EOF) {
+                LOGE("Player Error : codec step 1 fail");
+                return;
+            }
+            result = avcodec_receive_frame(audio_codec_context, frame);
+            if (result < 0 && result != AVERROR_EOF) {
+                LOGE("Player Error : codec step 2 fail");
+                return;
+            }
+            // resample
+            swr_convert(swr_context, &out_buffer, 44100 * 2, (const uint8_t **) frame->data, frame->nb_samples);
+
+
+            // play audio via JNI
+            int size = av_samples_get_buffer_size(nullptr, out_channels, frame->nb_samples, AV_SAMPLE_FMT_S16, 1);
+            jbyteArray  audio_sample_array = env->NewByteArray(size);
+            env->SetByteArrayRegion(audio_sample_array, 0, size, (const jbyte *) out_buffer);
+            env->CallVoidMethod(instance, play_audio_track_method_id, audio_sample_array, size);
+            env->DeleteLocalRef(audio_sample_array);
+        }
+        av_packet_unref(packet);
+    }
+
+    // release AudioTrack
+    jmethodID release_audio_track_method_id = env->GetMethodID(player_class, "releaseAudioTrack", "()V");
+    env->CallVoidMethod(instance, release_audio_track_method_id);
+
+    av_frame_free(&frame);
+    av_packet_free(&packet);
+    swr_free(&swr_context);
+    avcodec_close(audio_codec_context);
+    avformat_close_input(&format_context);
+    avformat_free_context(format_context);
+    env->ReleaseStringUTFChars(path_, path);
 }

@@ -38,7 +38,7 @@ class MainActivity : BasePlaygroundAct() {
 
     companion object {
         private const val REQUEST_STORAGE = 0xffff
-        private const val REQUEST_CODE_PICK_VIDEO = 0xfffe
+        private const val REQUEST_CODE_PICK_AUDIO = 0xfffd
         private const val TAG = "MainActivity"
     }
 
@@ -47,6 +47,37 @@ class MainActivity : BasePlaygroundAct() {
 
     override fun onVideoPicked(uri: Uri) {
         tryGetVideoConfig(uri)
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menu.add("PICKAUDIO").setOnMenuItemClickListener {
+            startActivityForResult(
+                Intent(Intent.ACTION_GET_CONTENT)
+                    .setType("video/*")
+                    .putExtra(Intent.EXTRA_LOCAL_ONLY, true)
+                    .addCategory(Intent.CATEGORY_OPENABLE),
+                REQUEST_CODE_PICK_AUDIO
+            )
+            true
+        }.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
+        return super.onCreateOptionsMenu(menu)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == REQUEST_CODE_PICK_AUDIO) {
+            if (resultCode == Activity.RESULT_OK && data?.data != null) {
+                onAudioPicked(data.data!!)
+            }
+        }
+    }
+
+    private fun onAudioPicked(uri: Uri) {
+        Log.i(TAG, "play audio with uri: $uri")
+        val path = FileUtils(this).getPath(uri)
+        Thread {
+            mPlayer.playAudio(path)
+        }.start()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -132,11 +163,13 @@ class MainActivity : BasePlaygroundAct() {
 
     private fun playVideo(path: String) {
         Thread {
-            val player = Player()
-            player.playVideo(path, surfaceHolder!!.surface)
+            mPlayer.playVideo(path, surfaceHolder!!.surface)
         }.start()
 
     }
+
+
+    private val mPlayer = Player()
 
     private fun setVideoConfig(config: VideoFileConfig) {
         Log.d(TAG, "setVideoConfig: $config")
