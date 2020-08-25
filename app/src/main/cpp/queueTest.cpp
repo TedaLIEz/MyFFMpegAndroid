@@ -6,15 +6,14 @@
 #include "log.h"
 #include <pthread.h>
 #include <unistd.h>
-#include "queue.h"
-
+#include "NaiveQueue.h"
 
 // 线程锁
 pthread_mutex_t mutex_id;
 // 条件变量
 pthread_cond_t produce_condition_id, consume_condition_id;
 // 队列
-Queue queue;
+NaiveQueue* queue;
 // 生产数量
 #define PRODUCE_COUNT 10
 // 目前消费数量
@@ -25,11 +24,11 @@ void* produce(void* arg) {
     char* name = (char*) arg;
     for (int i = 0; i < PRODUCE_COUNT; i++) {
         pthread_mutex_lock(&mutex_id);
-        while (queue_is_full(&queue)) {
+        while (queue->isFull()) {
             pthread_cond_wait(&produce_condition_id, &mutex_id);
         }
         LOGE("QueueTest, %s produce element: %d", name, i);
-        queue_in(&queue, (NodeElement) i);
+        queue->offer((AVPacket*) i);
         pthread_cond_signal(&consume_condition_id);
         pthread_mutex_unlock(&mutex_id);
         sleep(1);
@@ -44,7 +43,7 @@ void* consume(void* arg) {
     while (1) {
         pthread_mutex_lock(&mutex_id);
 
-        while (queue_is_empty(&queue)) {
+        while (queue->isEmpty()) {
             if (consume_number == PRODUCE_COUNT) {
                 break;
             }
@@ -57,7 +56,7 @@ void* consume(void* arg) {
             pthread_mutex_unlock(&mutex_id);
             break;
         }
-        auto element = queue_out(&queue);
+        auto element = queue->poll();
         consume_number += 1;
         LOGE("QueueTest, %s consume element : %d", name, element);
         pthread_cond_signal(&produce_condition_id);
@@ -73,7 +72,7 @@ void* consume(void* arg) {
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_github_tedaliez_testffmpeg_NativeTest_testThread(JNIEnv *env, jobject thiz) {
-    queue_init(&queue);
+    queue = new NaiveQueue();
     pthread_t tid1, tid2, tid3;
 
     pthread_mutex_init(&mutex_id, nullptr);
@@ -94,6 +93,6 @@ Java_com_github_tedaliez_testffmpeg_NativeTest_testThread(JNIEnv *env, jobject t
     pthread_cond_destroy(&consume_condition_id);
 
     pthread_mutex_destroy(&mutex_id);
-    queue_destroy(&queue);
+    delete queue;
 
 }

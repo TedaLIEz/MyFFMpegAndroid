@@ -28,15 +28,19 @@ private:
 
     bool is_block;
 
-    pthread_mutex_t* mutex_id;
+    pthread_mutex_t mutex_id;
 
-    pthread_cond_t* not_empty_condition;
-    pthread_cond_t* not_full_condition;
+    pthread_cond_t not_empty_condition;
+    pthread_cond_t not_full_condition;
 
 
 public:
     NaiveQueue();
 
+
+    NaiveQueue(const NaiveQueue&) = delete;
+
+    NaiveQueue& operator=(NaiveQueue const&) = delete;
 
 
     bool isEmpty();
