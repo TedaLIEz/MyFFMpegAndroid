@@ -35,7 +35,6 @@ add_library(test_ffmpeg
         src/main/cpp/main.cpp
         src/main/cpp/queue.cpp
         src/main/cpp/queueTest.cpp
-        src/main/cpp/NaiveQueue.cpp
         src/main/cpp/player.cpp)
 
 target_link_libraries(

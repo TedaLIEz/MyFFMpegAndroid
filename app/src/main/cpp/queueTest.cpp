@@ -13,7 +13,7 @@ pthread_mutex_t mutex_id;
 // 条件变量
 pthread_cond_t produce_condition_id, consume_condition_id;
 // 队列
-NaiveQueue* queue;
+NaiveQueue<AVPacket*>* queue;
 // 生产数量
 #define PRODUCE_COUNT 10
 // 目前消费数量
@@ -72,7 +72,7 @@ void* consume(void* arg) {
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_github_tedaliez_testffmpeg_NativeTest_testThread(JNIEnv *env, jobject thiz) {
-    queue = new NaiveQueue();
+    queue = new NaiveQueue<AVPacket*>();
     pthread_t tid1, tid2, tid3;
 
     pthread_mutex_init(&mutex_id, nullptr);
@@ -94,5 +94,5 @@ Java_com_github_tedaliez_testffmpeg_NativeTest_testThread(JNIEnv *env, jobject t
 
     pthread_mutex_destroy(&mutex_id);
     delete queue;
-
+    consume_number = 0;
 }
