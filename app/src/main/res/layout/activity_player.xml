@@ -16,4 +16,12 @@
         app:layout_constraintLeft_toLeftOf="parent"/>
 
 
+    <Button
+        android:text="TEST NATIVE THREAD"
+        android:id="@+id/nativeTest"
+        app:layout_constraintTop_toBottomOf="@+id/surfaceView"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -7,6 +7,8 @@ import android.os.Bundle
 import android.util.Log
 import android.view.SurfaceHolder
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.activity_main.surfaceView
+import kotlinx.android.synthetic.main.activity_player.*
 
 class PlayerActivity : BasePlaygroundAct() {
 
@@ -24,6 +26,11 @@ class PlayerActivity : BasePlaygroundAct() {
         setContentView(R.layout.activity_player)
         surfaceHolder = surfaceView.holder
         surfaceHolder.setFormat(PixelFormat.RGBA_8888)
+        nativeTest.setOnClickListener {
+            Thread {
+                NativeTest().testThread() // this block main thread as we call pthread_join
+            }.start()
+        }
     }
 
 
