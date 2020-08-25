@@ -9,9 +9,6 @@
 #include <pthread.h>
 #include "log.h"
 
-extern "C" {
-#include "libavformat/avformat.h"
-};
 #define QUEUE_MAX_SIZE 50
 
 template <typename T>
@@ -61,7 +58,7 @@ public:
         return size == QUEUE_MAX_SIZE;
     }
 
-    void offer(AVPacket* data) {
+    void offer(T data) {
         pthread_mutex_lock(&mutex_id);
         while (isFull() && is_block) {
             pthread_cond_wait(&not_full_condition, &mutex_id);

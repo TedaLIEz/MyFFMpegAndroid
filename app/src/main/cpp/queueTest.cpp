@@ -7,6 +7,9 @@
 #include <pthread.h>
 #include <unistd.h>
 #include "NaiveQueue.h"
+extern "C" {
+#include "libavformat/avformat.h"
+}
 
 // 线程锁
 pthread_mutex_t mutex_id;
