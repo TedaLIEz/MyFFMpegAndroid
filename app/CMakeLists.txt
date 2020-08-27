@@ -33,8 +33,8 @@ add_library(test_ffmpeg
         src/main/cpp/video_config_jni.cpp
         src/main/cpp/utils.cpp
         src/main/cpp/main.cpp
-        src/main/cpp/queue.cpp
         src/main/cpp/queueTest.cpp
+        src/main/cpp/jni_syncplayer.cpp
         src/main/cpp/player.cpp)
 
 target_link_libraries(

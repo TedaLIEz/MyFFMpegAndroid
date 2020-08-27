@@ -18,7 +18,7 @@ pthread_cond_t produce_condition_id, consume_condition_id;
 // 队列
 NaiveQueue<AVPacket*>* queue;
 // 生产数量
-#define PRODUCE_COUNT 10
+#define PRODUCE_COUNT 100
 // 目前消费数量
 int consume_number = 0;
 
@@ -34,7 +34,6 @@ void* produce(void* arg) {
         queue->offer((AVPacket*) i);
         pthread_cond_signal(&consume_condition_id);
         pthread_mutex_unlock(&mutex_id);
-        sleep(1);
     }
     LOGE("QueueTest, %s produce finish", name);
     return NULL;
@@ -64,7 +63,7 @@ void* consume(void* arg) {
         LOGE("QueueTest, %s consume element : %d", name, element);
         pthread_cond_signal(&produce_condition_id);
         pthread_mutex_unlock(&mutex_id);
-        sleep(1);
+        usleep(5000);
     }
     LOGE("QueueTest, %s consume finish", name);
     return  NULL;

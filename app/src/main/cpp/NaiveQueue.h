@@ -101,6 +101,7 @@ public:
         auto element = node->data;
         free(node);
         size -= 1;
+        pthread_cond_signal(&not_full_condition);
         pthread_mutex_unlock(&mutex_id);
         return element;
     }
