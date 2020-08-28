@@ -39,6 +39,12 @@ typedef struct _Player {
     double audio_clock;
 } Player;
 
+/* no AV sync correction is done if below the minimum AV sync threshold */
+#define AV_SYNC_THRESHOLD_MIN 0.04
+/* no AV correction is done if too big error */
+#define AV_NOSYNC_THRESHOLD 10.0
+
+
 // 消费载体
 typedef struct _Consumer {
     Player* player;
@@ -265,13 +271,16 @@ void* consumeFrame(void* arg) {
         return nullptr;
     }
     AVCodecContext* codec_context;
+    AVStream* stream;
     NaiveQueue<AVPacket*>* queue = nullptr;
     if (index == player->video_stream_index) {
         codec_context = player->video_codec_context;
+        stream = player->format_context->streams[player->video_stream_index];
         queue = player->video_queue;
         video_prepare(player, env);
     } else if (index == player->audio_stream_index) {
         codec_context = player->audio_codec_context;
+        stream = player->format_context->streams[player->audio_stream_index];
         queue = player->audio_queue;
         audio_prepare(player, env);
     } else {
@@ -298,8 +307,28 @@ void* consumeFrame(void* arg) {
             continue;
         }
         if (index == player->video_stream_index) {
+            auto audio_clock = player->audio_clock;
+            double timestamp;
+            if (packet->pts == AV_NOPTS_VALUE) {
+                timestamp = 0;
+            } else {
+                timestamp = frame->best_effort_timestamp * av_q2d(stream->time_base);
+            }
+            double frame_rate = av_q2d(stream->avg_frame_rate);
+            frame_rate += frame->repeat_pict * (frame_rate * 0.5);
+            if (timestamp == 0.0) {
+                usleep(frame_rate * 1000);
+            } else {
+                if (fabs(timestamp - audio_clock) > AV_SYNC_THRESHOLD_MIN
+                    && fabs(timestamp - audio_clock) < AV_NOSYNC_THRESHOLD) {
+                    if (timestamp > audio_clock) {
+                        usleep((unsigned long)((timestamp - audio_clock)*1000000));
+                    }
+                }
+            }
             video_play(player, frame, env);
         } else if (index == player->audio_stream_index) {
+            player->audio_clock = packet->pts * av_q2d(stream->time_base);
             LOGD("SyncPlayer: Playing audio loop");
             audio_play(player, frame, env);
         } else {
